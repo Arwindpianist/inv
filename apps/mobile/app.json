@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "INV.MyceliumLink",
+    "slug": "inventory-by-mycelliumlink",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#100f05"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.myceliumlink.inv"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#100f05"
+      },
+      "package": "com.myceliumlink.inv",
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-barcode-scanner",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access camera for barcode scanning."
+        }
+      ]
+    ],
+    "scheme": "mycelium-inv",
+    "extra": {
+      "eas": {
+        "projectId": "e0e0bc60-99d0-4abe-bee2-32094db0b004"
+      }
+    },
+    "owner": "adpmc"
+  }
+}

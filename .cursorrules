@@ -1,0 +1,341 @@
+Excellent — here’s the **final all-in-one `cursorrules.md`** file for `inv.mycelliumlink.com`.
+
+It merges:
+
+* ✅ full **development instructions** for your inventory management system (frontend, backend, and mobile),
+* 🎨 **styling directives** based on your uploaded MyceliumLink files (`globals.css`, `network-animation.tsx`),
+* 🧠 and explicit behavior guidance for Cursor so it can autonomously build, maintain, and expand the project.
+
+This file is drop-in ready for Cursor and forms the single source of truth for the repository.
+
+---
+
+# 🧠 CursorRules for INV.MyceliumLink
+
+## Overview
+**Project:** INV.MyceliumLink  
+**Domain:** [inv.mycelliumlink.com](https://inv.mycelliumlink.com)  
+**Purpose:** Multi-tenant inventory management system for companies involved in fiber works, ICT, CCTV, servers, laptops/PC, manpower, and cabling/construction services.  
+**Backend:** Supabase (Postgres + Auth + Storage)  
+**Frontend:** Next.js 15 (Web), Expo (Mobile Scanner)  
+**Design Base:** MyceliumLink shared aesthetic (from `globals.css` & `network-animation.tsx`)
+
+---
+
+## 🎯 1. Development Objectives
+
+Cursor must build a complete, modular inventory system with:
+1. **Multi-tenant support** (RLS isolation in Supabase)
+2. **Inventory tracking** (items, quantities, costs, MRSP, barcodes)
+3. **Mobile scanning app** (Expo/PWA)
+4. **Excel import/export**
+5. **Group / resource pool management**
+6. **Activity logs**
+7. **Shared MyceliumLink styling and animation**
+
+---
+
+## 🧱 2. Monorepo Structure
+
+```
+
+mycelium-inv/
+├─ apps/
+│   ├─ web/           → Next.js 15 app (management dashboard)
+│   └─ mobile/        → Expo app (scanner)
+├─ packages/
+│   ├─ ui/            → Shared shadcn + Tailwind components
+│   ├─ styles/        → globals.css, network-animation, Tailwind config
+│   ├─ db/            → Supabase types, migrations, hooks
+│   └─ utils/         → Shared functions (auth, barcode validation)
+├─ .env.local         → Supabase keys (anon + service)
+└─ cursorrules.md
+
+```
+
+---
+
+## 🧮 3. Database & Backend (Supabase)
+
+### Tables
+**tenants**
+```sql
+id uuid primary key,
+name text not null,
+created_at timestamp default now()
+````
+
+**users**
+
+```sql
+id uuid primary key,
+tenant_id uuid references tenants(id),
+email text unique,
+role text check (role in ('owner','manager','staff'))
+```
+
+**items**
+
+```sql
+id bigserial primary key,
+tenant_id uuid references tenants(id),
+name text not null,
+sku text unique,
+barcode text unique,
+cost numeric(12,2),
+mrsp numeric(12,2),
+quantity integer default 0,
+unit text,
+category text,
+location text,
+notes text,
+created_at timestamp default now()
+```
+
+**scans**
+
+```sql
+id bigserial primary key,
+tenant_id uuid references tenants(id),
+item_id bigint references items(id),
+user_id uuid references users(id),
+quantity_delta integer not null,
+note text,
+photo_url text,
+location text,
+scanned_at timestamp default now()
+```
+
+**groups**
+
+```sql
+id bigserial primary key,
+tenant_id uuid references tenants(id),
+name text not null,
+description text,
+created_at timestamp default now()
+```
+
+**group_items**
+
+```sql
+id bigserial primary key,
+group_id bigint references groups(id),
+item_id bigint references items(id),
+quantity integer default 0
+```
+
+**logs**
+
+```sql
+id bigserial primary key,
+tenant_id uuid references tenants(id),
+user_id uuid references users(id),
+action text,
+details jsonb,
+created_at timestamp default now()
+```
+
+### Quantity Sync Trigger
+
+```sql
+create or replace function update_item_quantity()
+returns trigger as $$
+begin
+  update items
+  set quantity = quantity + new.quantity_delta
+  where id = new.item_id;
+  return new;
+end;
+$$ language plpgsql;
+
+create trigger trg_update_quantity
+after insert on scans
+for each row
+execute function update_item_quantity();
+```
+
+### Security
+
+* Row-Level Security ON for all tenant tables.
+* Policies: `tenant_id = auth.jwt() ->> 'tenant_id'`.
+* Use Supabase Auth (email/password or magic link).
+
+---
+
+## 💻 4. Frontend (Next.js Web App)
+
+### Pages
+
+| Route       | Purpose                                        |
+| ----------- | ---------------------------------------------- |
+| `/`         | Dashboard summary (stock levels, recent scans) |
+| `/items`    | Full CRUD table, import/export, search         |
+| `/groups`   | Manage groups/resource pools                   |
+| `/logs`     | Activity audit trail                           |
+| `/settings` | Tenant & user management                       |
+
+### Features
+
+* Excel import/export using `xlsx`
+* Role-based access (owner, manager, staff)
+* Real-time stock updates via Supabase subscriptions
+* CRUD modals built with shadcn/ui
+* Server actions for data writes (Next.js)
+
+---
+
+## 📱 5. Mobile App (Expo)
+
+### Purpose
+
+Lightweight scanner interface for staff.
+
+### Screens
+
+1. **Login** (Supabase Auth)
+2. **Scanner** (Expo BarcodeScanner)
+3. **Item Details** → name, quantity, cost, MRSP
+4. **Adjust Stock** → delta input, notes, optional photo
+5. **Sync Status** → green (synced) / yellow (pending)
+
+### Behavior
+
+* Offline-first via `AsyncStorage`
+* Background sync every 5 minutes
+* Signed image uploads to Supabase Storage
+
+---
+
+## 🧩 6. Styling & Theme Rules
+
+### Source Files
+
+* `/styles/globals.css`
+* `/components/network-animation.tsx`
+
+Cursor must import and extend these directly, not duplicate them.
+
+### Palette
+
+| Token          | Color                    | Usage          |
+| -------------- | ------------------------ | -------------- |
+| `--primary`    | `#b1a235`                | Accent + CTAs  |
+| `--secondary`  | `#236c71`                | Secondary UI   |
+| `--accent`     | `#2f3f98`                | Hover & motion |
+| `--background` | `#100f05`                | Base           |
+| `--foreground` | `#f8f5e8`                | Text           |
+| `--border`     | `rgba(248,245,232,0.15)` | Lines          |
+
+### Motion & Texture
+
+* Maintain existing **network animation** as a background element in dashboard and login screens.
+* Never modify its internal RGB or path logic; only change opacity or node density.
+* Use `.animate-pulse-glow`, `.animate-float`, `.animate-gradient` for organic transitions.
+
+### Components
+
+| Component   | Style Tokens                                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------------------- |
+| **Cards**   | `bg-card text-card-foreground rounded-2xl shadow-[0_0_20px_rgba(92,141,247,0.15)]`                      |
+| **Buttons** | primary: `bg-primary text-background hover:bg-primary/80`; secondary: `bg-secondary/80 text-foreground` |
+| **Inputs**  | `bg-background/40 border border-border/30 rounded-xl px-3 py-2`                                         |
+| **Tables**  | zebra stripes with `bg-background/60` and `border-border/50`                                            |
+| **Modals**  | glass effect `bg-background/60 backdrop-blur-xl border border-border/20`                                |
+
+### Typography
+
+* Font: `Inter, sans-serif`
+* Headings: `font-semibold tracking-tight`
+* Text color: `text-foreground`
+* Subtle text: `text-muted-foreground`
+
+---
+
+## 🧭 7. Layout & Components
+
+### Web
+
+* **Dashboard Layout:**
+  Sidebar (groups & navigation) + Header (tenant name, user menu) + Main content area.
+* **Sidebar:** collapsible, glass style, highlight active route.
+* **Network Animation:** absolute background layer behind dashboard content.
+
+### Mobile
+
+* Single-screen scanner UI with bottom sheet for adjustments.
+* Use same dark theme and accent highlights.
+
+---
+
+## 💾 8. Storage Optimization
+
+* Delta updates only (`quantity_delta`) instead of full writes.
+* Compress images ≤1 MB before upload.
+* Cache item lists client-side with SWR.
+* Purge old logs periodically using Supabase edge function.
+
+---
+
+## 🔐 9. Security Standards
+
+* Enforce RLS on all tables.
+* Use signed URLs for Supabase Storage.
+* All data fetches scoped by `tenant_id`.
+* Use HTTPS and secure cookies for auth.
+
+---
+
+## 🚀 10. Deployment
+
+| Layer     | Platform              | Notes                   |
+| --------- | --------------------- | ----------------------- |
+| Web       | **Vercel**            | `inv.mycelliumlink.com` |
+| Mobile    | **Expo (EAS or PWA)** | Barcode scanner client  |
+| Backend   | **Supabase**          | Database, Auth, Storage |
+| CDN / DNS | **Cloudflare**        | Domain + caching        |
+| CI/CD     | **GitHub Actions**    | Auto deploy both apps   |
+
+---
+
+## 🧰 11. Development Standards
+
+* **Language:** TypeScript only
+* **Code style:** Prettier + ESLint
+* **Commits:** Conventional commits (`feat:`, `fix:`, `chore:`)
+* **Testing:** Vitest + React Testing Library for core UI
+* **Branch naming:**
+
+  * `feat/<feature>` → new feature
+  * `fix/<bug>` → bugfix
+* **Comments:** Required for business logic, triggers, and canvas animations.
+
+---
+
+## 🎨 12. Cursor Behavior Rules
+
+Cursor must:
+
+1. Always apply **globals.css** and **network-animation.tsx** when creating layouts.
+2. Never modify or duplicate color definitions.
+3. Use **Tailwind utilities referencing CSS vars** instead of hardcoded values.
+4. Use **shadcn/ui** components before making custom ones.
+5. Generate forms using `react-hook-form + zod`.
+6. Use **Supabase client from `/packages/db/supabase.ts`** for all calls.
+7. Ask before adding any npm dependency not listed in this file.
+8. Maintain consistent motion and tone (organic, calm, minimal glow).
+9. Implement all CRUD and sync operations securely with RLS awareness.
+10. Treat the **network animation** as a decorative global layer, not interactive logic.
+
+---
+
+## 🧾 13. Summary
+
+INV.MyceliumLink extends the **MyceliumLink design system** into a modular, multi-tenant inventory platform.
+Cursor should:
+
+* Build production-ready code following this document exactly.
+* Maintain aesthetic unity with MyceliumLink’s styles.
+* Prioritize data efficiency, clean architecture, and user experience.
+
+---

@@ -1,0 +1,50 @@
+# Supabase CLI Configuration
+# This file configures Supabase CLI for local development and migrations
+
+[project]
+# Your Supabase project reference ID (get from dashboard)
+# This will be set when you run: supabase link --project-ref your-project-ref
+
+[auth]
+# Auth configuration
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://inv.mycelliumlink.com"]
+
+[api]
+# API configuration
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+# Database configuration
+port = 54322
+shadow_port = 54320
+major_version = 17
+# Use direct connection instead of pooler to avoid connection limits
+# Get direct connection string from: Settings > Database > Connection string > Direct connection
+# Then set: db_url = "postgresql://postgres:[PASSWORD]@db.rpgbmenfrljxuuugiusi.supabase.co:5432/postgres"
+
+[studio]
+# Supabase Studio configuration
+enabled = true
+port = 54323
+
+[inbucket]
+# Email testing (local development)
+enabled = true
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[storage]
+# Storage configuration
+enabled = true
+file_size_limit = "50MiB"
+
+# [functions]
+# Edge Functions (if you add them later)
+# enabled = false
