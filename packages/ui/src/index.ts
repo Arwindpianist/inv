@@ -7,4 +7,5 @@ export * from "./components/table";
 export * from "./components/dropdown-menu";
 export * from "./components/select";
 export * from "./components/tabs";
+export * from "./lib/utils";
 
