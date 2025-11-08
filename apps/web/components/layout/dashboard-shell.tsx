@@ -4,21 +4,17 @@ import { useEffect, useState } from "react";
 import { createSupabaseClient } from "@mycelium-inv/db";
 import { useRouter } from "next/navigation";
 import { NetworkAnimation } from "@mycelium-inv/styles";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Header } from "@/components/layout/header";
+import { Sidebar } from "./sidebar";
+import { Header } from "./header";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const supabase = createSupabaseClient();
-    
+
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) {
         router.push("/login");
@@ -28,7 +24,9 @@ export default function DashboardLayout({
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         router.push("/login");
       } else {
