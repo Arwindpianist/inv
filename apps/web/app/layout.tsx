@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@mycelium-inv/styles/src/globals.css";
 import { Providers } from "./providers";
+import { cn } from "@mycelium-inv/ui";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,8 +18,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <Providers>{children}</Providers>
+      <body className={cn(inter.className, "bg-background text-foreground min-h-screen antialiased")}>
+        <Providers>
+          <div className="min-h-screen">{children}</div>
+        </Providers>
       </body>
     </html>
   );
