@@ -149,6 +149,12 @@
   }
 }
 
+@layer utilities {
+  .outline-ring\/50 {
+    outline-color: color-mix(in srgb, var(--color-ring) 50%, transparent);
+  }
+}
+
 /* Added custom animations for mycelium network effect */
 @keyframes pulse-glow {
   0%,
