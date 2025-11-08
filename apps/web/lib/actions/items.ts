@@ -5,8 +5,13 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import type { Database } from "@mycelium-inv/db";
 
-function getCookies() {
-  const cookieStore = cookies();
+type CookieStore = Awaited<ReturnType<typeof cookies>>;
+
+async function getCookies() {
+  const cookieStore = (await cookies()) as CookieStore & {
+    set: (name: string, value: string, options?: any) => void;
+  };
+
   return {
     get: (name: string) => cookieStore.get(name),
     set: (name: string, value: string, options?: any) => {
@@ -15,14 +20,13 @@ function getCookies() {
   };
 }
 
-type Item = Database["public"]["Tables"]["items"]["Row"];
 type ItemInsert = Database["public"]["Tables"]["items"]["Insert"];
 type ItemUpdate = Database["public"]["Tables"]["items"]["Update"];
 
 export async function createItem(
   item: Omit<ItemInsert, "tenant_id" | "created_at">
 ) {
-  const supabase = createSupabaseServerClient(getCookies());
+  const supabase = createSupabaseServerClient(await getCookies());
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -51,7 +55,7 @@ export async function createItem(
 }
 
 export async function updateItem(id: number, data: ItemUpdate) {
-  const supabase = createSupabaseServerClient(getCookies());
+  const supabase = createSupabaseServerClient(await getCookies());
   const { data: item, error } = await supabase
     .from("items")
     .update(data)
@@ -65,7 +69,7 @@ export async function updateItem(id: number, data: ItemUpdate) {
 }
 
 export async function deleteItem(id: number) {
-  const supabase = createSupabaseServerClient(getCookies());
+  const supabase = createSupabaseServerClient(await getCookies());
   const { error } = await supabase.from("items").delete().eq("id", id);
 
   if (error) throw error;
@@ -73,7 +77,7 @@ export async function deleteItem(id: number) {
 }
 
 export async function getItems() {
-  const supabase = createSupabaseServerClient(getCookies());
+  const supabase = createSupabaseServerClient(await getCookies());
   const {
     data: { user },
   } = await supabase.auth.getUser();

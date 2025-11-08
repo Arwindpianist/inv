@@ -2,21 +2,26 @@ import { createClient } from "@supabase/supabase-js";
 import { createBrowserClient, createServerClient } from "@supabase/ssr";
 import type { Database } from "./types";
 
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  process.env.EXPO_PUBLIC_SUPABASE_URL ||
-  "";
-const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
-  "";
+function getPublicSupabaseConfig() {
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    process.env.EXPO_PUBLIC_SUPABASE_URL ||
+    "";
+  const supabaseAnonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
+    "";
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Missing Supabase environment variables");
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Missing Supabase environment variables");
+  }
+
+  return { supabaseUrl, supabaseAnonKey };
 }
 
 // Browser client (for client components)
 export function createSupabaseClient() {
+  const { supabaseUrl, supabaseAnonKey } = getPublicSupabaseConfig();
   return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
 }
 
@@ -25,6 +30,7 @@ export function createSupabaseServerClient(cookies: {
   get: (name: string) => { value: string } | undefined;
   set: (name: string, value: string, options?: any) => void;
 }) {
+  const { supabaseUrl, supabaseAnonKey } = getPublicSupabaseConfig();
   return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get(name: string) {
@@ -39,6 +45,7 @@ export function createSupabaseServerClient(cookies: {
 
 // Service role client (server-side only, bypasses RLS)
 export function createSupabaseServiceClient() {
+  const { supabaseUrl } = getPublicSupabaseConfig();
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceKey) {
     throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
@@ -53,6 +60,7 @@ export function createSupabaseServiceClient() {
 
 // Mobile client (React Native)
 export function createSupabaseMobileClient() {
+  const { supabaseUrl, supabaseAnonKey } = getPublicSupabaseConfig();
   if (typeof window === "undefined") {
     // Server-side
     return createClient<Database>(supabaseUrl, supabaseAnonKey);

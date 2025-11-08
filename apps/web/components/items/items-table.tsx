@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useItems } from "@mycelium-inv/db";
 import { getTenantId } from "@mycelium-inv/utils";
+import type { UserWithTenant } from "@mycelium-inv/utils";
 import { createSupabaseClient } from "@mycelium-inv/db";
 import {
   Table,
@@ -16,10 +17,9 @@ import { Button } from "@mycelium-inv/ui";
 import { ItemForm } from "./item-form";
 import { ExcelImport } from "./excel-import";
 import { ExcelExport } from "./excel-export";
-import { formatCurrency, formatDate } from "@mycelium-inv/utils";
+import { formatCurrency } from "@mycelium-inv/utils";
 
 export function ItemsTable() {
-  const [user, setUser] = useState<any>(null);
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -27,9 +27,8 @@ export function ItemsTable() {
   useEffect(() => {
     const supabase = createSupabaseClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
       if (user) {
-        const tid = getTenantId(user);
+        const tid = getTenantId(user as UserWithTenant);
         setTenantId(tid);
       }
     });

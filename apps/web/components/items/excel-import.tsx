@@ -15,7 +15,6 @@ import { createItem } from "@/lib/actions/items";
 
 export function ExcelImport() {
   const [open, setOpen] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<{ valid: any[]; errors: string[] } | null>(null);
 
@@ -23,7 +22,6 @@ export function ExcelImport() {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
 
-    setFile(selectedFile);
     try {
       const result = await parseExcelFile(selectedFile);
       setPreview(result);
@@ -41,7 +39,6 @@ export function ExcelImport() {
         await createItem(item);
       }
       setOpen(false);
-      setFile(null);
       setPreview(null);
       window.location.reload();
     } catch (error) {
