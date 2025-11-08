@@ -19,7 +19,9 @@ type Item = Database["public"]["Tables"]["items"]["Row"];
 type ItemInsert = Database["public"]["Tables"]["items"]["Insert"];
 type ItemUpdate = Database["public"]["Tables"]["items"]["Update"];
 
-export async function createItem(data: Omit<ItemInsert, "tenant_id" | "created_at">) {
+export async function createItem(
+  item: Omit<ItemInsert, "tenant_id" | "created_at">
+) {
   const supabase = createSupabaseServerClient(getCookies());
   const {
     data: { user },
@@ -34,10 +36,10 @@ export async function createItem(data: Omit<ItemInsert, "tenant_id" | "created_a
     throw new Error("No tenant ID");
   }
 
-  const { data, error } = await supabase
+  const { data: createdItem, error } = await supabase
     .from("items")
     .insert({
-      ...data,
+      ...item,
       tenant_id: tenantId,
     })
     .select()
@@ -45,7 +47,7 @@ export async function createItem(data: Omit<ItemInsert, "tenant_id" | "created_a
 
   if (error) throw error;
   revalidatePath("/dashboard/items");
-  return data;
+  return createdItem;
 }
 
 export async function updateItem(id: number, data: ItemUpdate) {
