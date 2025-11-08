@@ -32,11 +32,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      <NetworkAnimation opacity={0.3} />
-      <div className="relative z-10 w-full max-w-md">
-        <div className="bg-card text-card-foreground rounded-2xl shadow-[0_0_20px_rgba(92,141,247,0.15)] p-8 border border-border/20">
-          <h1 className="text-3xl font-semibold tracking-tight mb-6 text-center">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background">
+      <div className="pointer-events-none absolute inset-0">
+        <NetworkAnimation opacity={0.3} />
+      </div>
+      <div className="relative z-10 w-full max-w-md px-6">
+        <div className="bg-card text-card-foreground rounded-2xl shadow-[0_0_20px_rgba(92,141,247,0.25)] border border-border/20 p-8 backdrop-blur-xl">
+          <h1 className="mb-6 text-center text-3xl font-semibold tracking-tight">
             INV.MyceliumLink
           </h1>
           <form onSubmit={handleLogin} className="space-y-4">

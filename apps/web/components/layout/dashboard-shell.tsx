@@ -46,12 +46,16 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen flex relative">
-      <NetworkAnimation opacity={0.2} />
-      <Sidebar />
-      <div className="flex-1 flex flex-col relative z-10">
-        <Header user={user} />
-        <main className="flex-1 p-6 overflow-auto">{children}</main>
+    <div className="relative min-h-screen overflow-hidden bg-background">
+      <div className="pointer-events-none absolute inset-0">
+        <NetworkAnimation opacity={0.2} />
+      </div>
+      <div className="relative z-10 flex min-h-screen">
+        <Sidebar />
+        <div className="flex-1 flex flex-col">
+          <Header user={user} />
+          <main className="flex-1 overflow-auto p-6">{children}</main>
+        </div>
       </div>
     </div>
   );
